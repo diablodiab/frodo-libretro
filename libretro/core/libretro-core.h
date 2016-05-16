@@ -26,8 +26,8 @@
 	#define PITCH 4	
 #endif 
 
-#define WINDOW_WIDTH 384//400
-#define WINDOW_HEIGHT 288//300
+#define WINDOW_WIDTH 320//400
+#define WINDOW_HEIGHT 200//300
 
 #ifndef NO_LIBCO
 #include "libco/libco.h"
@@ -64,7 +64,8 @@ extern int pauseg;
 #define STAT_DECX 120
 #define STAT_YSZ  20
 
-#define RGB565(r, g, b)  (((r) << (5+16)) | ((g) << (5+8)) | (b<<5))
+#define RGB565(r, g, b)  (((r*8) << 16) | ((g*8) << 8) | (b*8)) 
+//#define RGB565(r, g, b)  (((r) << (5+16)) | ((g) << (5+8)) | (b<<5))
 //#define RGB565(r, g, b)  (((r) << (5+6)) | ((g) << 6) | (b))
 #define uint32 unsigned int
 #define uint8 unsigned char

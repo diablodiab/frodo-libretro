@@ -1,6 +1,7 @@
 #include "libretro.h"
 #include "libretro-core.h"
 #include "retroscreen.h"
+#include "Prefs.h"
 //CORE VAR
 #ifdef _WIN32
 char slash = '\\';
@@ -11,6 +12,7 @@ extern const char *retro_save_directory;
 extern const char *retro_system_directory;
 extern const char *retro_content_directory;
 char RETRO_DIR[512];
+int hack_autorun=1;
 
 //TIME
 #ifdef __CELLOS_LV2__
@@ -263,6 +265,13 @@ int Retro_PollEvent(uint8 *key_matrix, uint8 *rev_matrix, uint8 *joystick)
    int16_t mouse_x,mouse_y;
    mouse_x=mouse_y=0;
 
+   if(hack_autorun)
+   {
+     hack_autorun=0;
+     kbd_buf_feed("\rLOAD\":*\",8,1:\rRUN\r\0");
+     autoboot=true; 
+   }
+
    if(SHOWKEY==-1 && pauseg==0)Process_key(key_matrix,rev_matrix,joystick);
 
 if(pauseg==0){
@@ -278,7 +287,7 @@ if(pauseg==0){
    }
 */
 
-   i=1;//show vkbd toggle
+   i=3;//show vkbd toggle
    if ( input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) && mbt[i]==0 )
       mbt[i]=1;
    else if ( mbt[i]==1 && ! input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) )
@@ -288,24 +297,29 @@ if(pauseg==0){
       Screen_SetFullUpdate(0);  
    }
 }
-   i=2;//mouse/joy toggle
+   i=2;// swap joystick
    if ( input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) && mbt[i]==0 )
       mbt[i]=1;
    else if ( mbt[i]==1 && ! input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) ){
       mbt[i]=0;
-      MOUSE_EMULATED=-MOUSE_EMULATED;
+      ThePrefs.JoystickSwap = !ThePrefs.JoystickSwap;
    }
 
-/*
-   i=3;//push r/s
+   i=1;//push r/s
    if ( input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) && mbt[i]==0 ){
-      mbt[i]=1;validkey(MATRIX(0,3),0,key_matrix,rev_matrix,joystick);
+      mbt[i]=1;validkey(MATRIX(7,7),0,key_matrix,rev_matrix,joystick);
    }
    else if ( mbt[i]==1 && ! input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) ){
-      mbt[i]=0;validkey(MATRIX(0,3),1,key_matrix,rev_matrix,joystick);      
+      mbt[i]=0;validkey(MATRIX(7,7),1,key_matrix,rev_matrix,joystick);      
    }
-*/
 
+   i=0;//space
+   if ( input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) && mbt[i]==0 ){
+      mbt[i]=1;validkey(MATRIX(7,4),0,key_matrix,rev_matrix,joystick);
+   }
+   else if ( mbt[i]==1 && ! input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) ){
+      mbt[i]=0;validkey(MATRIX(7,4),1,key_matrix,rev_matrix,joystick);      
+   }
 
    if(MOUSE_EMULATED==1){
 

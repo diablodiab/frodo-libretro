@@ -211,7 +211,7 @@ unsigned short *pix=(unsigned short *)buffer;
 
    page = (NPAGE == -1) ? 0 : 50;
    coul = RGB565(28, 28, 31);
-   BKGCOLOR = (KCOL>0?0xFF808080:0);
+   BKGCOLOR = 0xFF900000;
 
 
    for(x=0;x<NPLGN;x++)
@@ -375,13 +375,37 @@ if(ThePrefs.ShowLEDs){
 	// Update display
 
 	//blit c64 scr 1bit depth to emu scr 4bit depth
-	int x;
+	retro_Rect src,dst;
 
-	unsigned int * pout =(unsigned int *)Retro_Screen+((ThePrefs.ShowLEDs?0:8)*retrow);
-	unsigned char * pin =(unsigned char *)screen->pixels;
+	int x,y,w;
 
-	for(x=0;x<screen->w*screen->h;x++)
-		*pout++=mpal[*pin++];
+	src.x=32;
+	src.y=35;
+	src.w=screen->w;
+	src.h=screen->h;
+	dst.x=0;
+	dst.y=0;
+	dst.w=retrow;
+	dst.h=retroh;
+
+	unsigned char * pout=(unsigned char *)Retro_Screen+(dst.x*4+dst.y*retrow*4);
+	unsigned char * pin =(unsigned char *)screen->pixels+(src.x*1+src.y*screen->w*1);
+
+	for(y=0;y<src.h;y++){		
+		for(x=0;x<src.w;x++){
+
+			unsigned int mcoul=palette[*pin].r<<16|palette[*pin].g<<8|palette[*pin].b;
+
+			for(w=0;w<4;w++){	
+		   		*pout=(mcoul>>(8*w))&0xff;
+		   		pout++;
+			}
+			pin++;
+
+		}
+		pin +=(screen->w-src.w)*1;
+		pout+=(retrow-src.w)*4;
+	}
 
 	//SHOW VKBD
 	if(SHOWKEY==1)virtual_kdb(( char *)Retro_Screen,vkx,vky);
