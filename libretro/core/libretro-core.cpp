@@ -1,6 +1,7 @@
 #include "libretro.h"
 
 #include "libretro-core.h"
+#include <sys/time.h>
 
 #ifndef NO_LIBCO
 cothread_t mainThread;
@@ -20,6 +21,11 @@ int CROP_HEIGHT;
 int VIRTUAL_WIDTH ;
 int retrow=1024; 
 int retroh=1024;
+long starttime=0;
+
+int autorun=0;
+int black=0;
+int black_waitdone=0;
 
 extern int SHIFTON,pauseg,SND ,snd_sampler;
 extern short signed int SNDBUF[1024*2];
@@ -34,6 +40,7 @@ extern void texture_uninit(void);
 extern void Emu_init();
 extern void Emu_uninit();
 extern void input_gui(void);
+extern long GetTicks();
 
 const char *retro_save_directory;
 const char *retro_system_directory;
@@ -49,11 +56,9 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb = cb;
 
    struct retro_variable variables[] = {
-      {
-         "Skel_resolution",
-         "Internal resolution; 384x288|400x300|640x480|832x576|800x600|960x720|1024x768|1024x1024",
-
-      },
+      { "frodo_resolution", "Internal resolution; 384x288|400x300|640x480|832x576|800x600|960x720|1024x768|1024x1024"},
+      { "frodo_autorun", "Autorun; disabled|enabled"},
+      { "frodo_black", "Black BASIC; disabled|enabled"},
       { NULL, NULL },
    };
 
@@ -62,9 +67,27 @@ void retro_set_environment(retro_environment_t cb)
 
 static void update_variables(void)
 {
-   struct retro_variable var = {
-      .key = "Skel_resolution",
-   };
+   struct retro_variable var = {0};
+
+   var.key = "frodo_autorun";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+     if (strcmp(var.value, "enabled") == 0)
+          autorun = 1;
+   }
+
+   var.key = "frodo_black";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+     if (strcmp(var.value, "enabled") == 0)
+          black = 1;
+   }
+
+   var.key = "frodo_resolution";
+   var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
@@ -121,6 +144,7 @@ void Emu_init(){
    MOUSEMODE=1;
 #endif
 
+   starttime = GetTicks();
    update_variables();
 
    memset(Key_Sate,0,512);
@@ -325,9 +349,12 @@ void retro_run(void)
 		TheC64->thread_func();
 #endif
 
-   }   
+   }
+   if(!black || black_waitdone) video_cb(Retro_Screen,retrow,retroh,retrow<<PIXEL_BYTES);
 
-   video_cb(Retro_Screen,retrow,retroh,retrow<<PIXEL_BYTES);
+   // If black BASIC is selected then wait a little before screen starts to update to avoid the
+   // brief flicker when graphics are initialized
+   else if((GetTicks()-starttime) > 3000) black_waitdone=1;
 
 #ifndef NO_LIBCO   
    co_switch(emuThread);

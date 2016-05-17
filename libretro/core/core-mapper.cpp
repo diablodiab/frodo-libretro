@@ -12,7 +12,7 @@ extern const char *retro_save_directory;
 extern const char *retro_system_directory;
 extern const char *retro_content_directory;
 char RETRO_DIR[512];
-int hack_autorun=1;
+extern int autorun;
 
 //TIME
 #ifdef __CELLOS_LV2__
@@ -265,9 +265,9 @@ int Retro_PollEvent(uint8 *key_matrix, uint8 *rev_matrix, uint8 *joystick)
    int16_t mouse_x,mouse_y;
    mouse_x=mouse_y=0;
 
-   if(hack_autorun)
+   if(autorun)
    {
-     hack_autorun=0;
+     autorun=0;
      kbd_buf_feed("\rLOAD\":*\",8,1:\rRUN\r\0");
      autoboot=true; 
    }

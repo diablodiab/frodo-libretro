@@ -52,9 +52,12 @@ char AppDirPath[1024];	// Path of application directory
 
 // Builtin ROMs
 #include "Basic_ROM.h"
-#include "Kernal_ROM.h"
+#include "Black_Kernal_ROM.h"
+#include "Standard_Kernal_ROM.h"
 #include "Char_ROM.h"
 #include "1541_ROM.h"
+
+extern int black;
 
 /*
  *  Load C64 ROM files
@@ -78,7 +81,8 @@ void Frodo::load_rom(const char *which, const char *path, uint8 *where, size_t s
 void Frodo::load_rom_files()
 {
 	load_rom("Basic", BASIC_ROM_FILE, TheC64->Basic, BASIC_ROM_SIZE, builtin_basic_rom);
-	load_rom("Kernal", KERNAL_ROM_FILE, TheC64->Kernal, KERNAL_ROM_SIZE, builtin_kernal_rom);
+	if(black) load_rom("Kernal", KERNAL_ROM_FILE, TheC64->Kernal, KERNAL_ROM_SIZE, black_builtin_kernal_rom);
+	else load_rom("Kernal", KERNAL_ROM_FILE, TheC64->Kernal, KERNAL_ROM_SIZE, standard_builtin_kernal_rom);
 	load_rom("Char", CHAR_ROM_FILE, TheC64->Char, CHAR_ROM_SIZE, builtin_char_rom);
 	load_rom("1541", DRIVE_ROM_FILE, TheC64->ROM1541, DRIVE_ROM_SIZE, builtin_drive_rom);
 }
